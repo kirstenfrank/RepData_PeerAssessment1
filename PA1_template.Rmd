@@ -8,14 +8,23 @@ output:
 
 ## Loading and preprocessing the data
 
+```{r}
+unzip("activity.zip")  #Unzip data.
+activity<-read.csv("activity.csv")  ## read file into R
+```
 
 
 ## What is mean total number of steps taken per day?
-
-
-
+The best way to determine this is to convert days into a factor and make a new dataframe that is the result of summing the step in each day. Then use this dataframe to make a mean over all days.
+```{r}
+activity$date<-as.Date(activity$date)
+activity$date<-as.factor(activity$date)
+results<-tapply(activity$steps,activity$date, sum, na.rm=TRUE)
+mean(results)
+median(results)
+hist(results, breaks = 10, main = "Frequecy of days with steps in range")
+```
 ## What is the average daily activity pattern?
-
 
 
 ## Imputing missing values
