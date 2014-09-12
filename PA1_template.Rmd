@@ -20,12 +20,15 @@ The best way to determine this is to convert days into a factor and make a new d
 activity$date<-as.Date(activity$date)
 activity$date<-as.factor(activity$date)
 results<-tapply(activity$steps,activity$date, sum, na.rm=TRUE)
+### Datatable "results" keeps the information.
 mean(results)
 median(results)
 hist(results, breaks = 10, main = "Frequecy of days with steps in range")
 ```
-## What is the average daily activity pattern?
+Results show a normal-looking distribution with possible outliers at zero and >20,000. 
 
+## What is the average daily activity pattern?
+The only information about time in the day is contained in the interval number. 
 
 ## Imputing missing values
 
