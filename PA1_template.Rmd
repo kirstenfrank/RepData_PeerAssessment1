@@ -3,6 +3,7 @@ title: "Reproducible Research: Peer Assessment 1"
 output: 
   html_document:
     keep_md: true
+    self_contained: false
 ---
 
 
@@ -80,7 +81,7 @@ newresults<-tapply(newdata$imputesteps,newdata$date, sum, na.rm=TRUE)
 ### Datatable "results" keeps the information.
 mean(newresults)
 median(newresults)
-hist(newresults, breaks = 10, main = "Frequency of days with steps in range")
+hist(newresults, breaks = 10, main = "Frequency of days with steps in range using imputed data")
 ```
 
 
@@ -105,9 +106,22 @@ weekendset<-subset(activity, activity$weekend=="weekend")
 ## average activity over time for weekdays
 aveweekday<-tapply(weekdayset$steps,weekdayset$intlevels,mean,na.rm=TRUE)
 aveweekend<-tapply(weekendset$steps,weekendset$intlevels,mean,na.rm=TRUE)
+
+aveweekday<-as.data.frame(aveweekday)
+aveweekday$interval<-row.names(aveweekday)
+aveweekday$avesteps<-aveweekday$aveweekday
+aveweekday$interval<-as.integer(aveweekday$interval)
+aveweekend<-as.data.frame(aveweekend)
+aveweekend$interval<-row.names(aveweekend)
+aveweekend$avesteps<-aveweekend$aveweekend
+aveweekend$interval<-as.integer(aveweekend$interval)
+newplot<-merge(aveweekday,aveweekend,by="interval")
+library(ggplot2)
 ```
 
 Plot two diagrams of average steps vs. time on weekdays, and average steps vs. time on weekend days.
 
-
-
+```{r}
+ggplot(newplot,aes(interval,aveweekday)) + geom_line()
+ggplot(newplot,aes(interval,aveweekend)) + geom_line()
+```
