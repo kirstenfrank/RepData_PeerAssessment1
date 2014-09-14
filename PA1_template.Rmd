@@ -22,6 +22,7 @@ library(lubridate)
 activity$weekday<-wday(activity$date, label=TRUE)
 ```
 ## What is mean total number of steps taken per day?
+
 The best way to determine this is to convert days into a factor and make a new dataframe that is the result of summing the step in each day. Then use this dataframe to make a mean over all days.
 
 ```{r histogram, echo=TRUE}
@@ -31,17 +32,20 @@ mean(results)
 median(results)
 hist(results, breaks = 10, main = "Frequency of days with steps in range")
 ```
+
 Results show a normal-looking distribution with possible outliers at zero and >20,000. The mean number of steps per day is `r round(mean(results))`. The median number of steps per day is `r median(results)`.
 
 ## What is the average daily activity pattern?
+
 The only information about time in the day is contained in the interval number. 
+
 ```{r dailyactivity,echo=TRUE}
 activity$intlevels<-as.ordered(activity$interval)
 stepstime<-tapply(activity$steps,activity$intlevels,mean,na.rm=TRUE)
 stepstime<-as.data.frame(stepstime)
 stepstime$interval<-row.names(stepstime)
 stepstime$avesteps<-stepstime$stepstime
-stepstime$interval<-as.numeric(stepstime$interval)
+stepstime$interval<-as.integer(stepstime$interval)
 plot(stepstime$interval,stepstime$avesteps,type="l")
 which.max(stepstime$avesteps)
 ```
@@ -49,6 +53,7 @@ Conclusions: the highest activity is at `r stepstime$interval[which.max(stepstim
 
 
 ## Imputing missing values
+
 The technique for calculating a value to impute for missing values is calculate an average for that time of day. This information is in the dataset stepstime and needs to be transferred back to the dataset activity. 
 
 First, how many values are NA?
@@ -57,23 +62,43 @@ There are `r nrow(activity)`. There are `r sum(complete.cases(activity))` comple
 I want to use the mean for that 5 minute interval across the days to fill in the missing values.
 
 ```{r} 
-## look up average for that interval and put it in meansteps.
-activity$meansteps<-stepstime$avesteps[stepstime$interval==as.numeric(activity$interval)]
+## Use merge to fill up the table with avesteps as a new variable.
+newdata<-merge(activity,stepstime,by="interval")
 
-activity$imputesteps<-ifelse(activity$steps==NA, activity$meansteps,activity$steps)
+## Note that order has been changed, but that isn't important.
+
+newdata$imputesteps<-ifelse(is.na(newdata$steps), newdata$avesteps,newdata$steps)
+
+###YAYYYYYYY, this actually fills in the missing values
 ```
 
+
+Now to repeat the analysis with imputed values.
+
+```{r}
+newresults<-tapply(newdata$imputesteps,newdata$date, sum, na.rm=TRUE)
+### Datatable "results" keeps the information.
+mean(newresults)
+median(newresults)
+hist(newresults, breaks = 10, main = "Frequency of days with steps in range")
+```
+
+
+The mean steps per day are `r mean(newresults)` and the median steps per data are `r median(newresults)`.  These are higher than before, which makes sense. The mean equals the median, which makes me think there is a mistake in the calculation. But I can't find it yet. There are many fewer days with lower numbers of steps. 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
 First figure which days are weekend and which are not. 
+
 ```{r }
 ## Setup weekend vs weekday as a factor.
 activity$weekend<-
     ifelse(activity$weekday %in% c("Mon","Tues","Wed","Thurs","Fri"),"weekday","weekend")
 activity$weekend<-as.factor(activity$weekend)
 ```
+
 Then break into two datasets, one for weekends and one for weekdays.
+
 ```{r}
 weekdayset<-subset(activity, activity$weekend=="weekday")
 weekendset<-subset(activity, activity$weekend=="weekend")
