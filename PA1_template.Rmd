@@ -29,7 +29,7 @@ results<-tapply(activity$steps,activity$date, sum, na.rm=TRUE)
 ### Datatable "results" keeps the information.
 mean(results)
 median(results)
-hist(results, breaks = 10, main = "Frequecy of days with steps in range")
+hist(results, breaks = 10, main = "Frequency of days with steps in range")
 ```
 Results show a normal-looking distribution with possible outliers at zero and >20,000. The mean number of steps per day is `r round(mean(results))`. The median number of steps per day is `r median(results)`.
 
@@ -45,9 +45,23 @@ stepstime$interval<-as.numeric(stepstime$interval)
 plot(stepstime$interval,stepstime$avesteps,type="l")
 which.max(stepstime$avesteps)
 ```
-Conclusions: the highest activity is at .
-## Imputing missing values
+Conclusions: the highest activity is at `r stepstime$interval[which.max(stepstime$avesteps)]`.
 
+
+## Imputing missing values
+The technique for calculating a value to impute for missing values is calculate an average for that time of day. This information is in the dataset stepstime and needs to be transferred back to the dataset activity. 
+
+First, how many values are NA?
+There are `r nrow(activity)`. There are `r sum(complete.cases(activity))` complete cases. Therefore, there are `r sum(!complete.cases(activity))`.  
+
+I want to use the mean for that 5 minute interval across the days to fill in the missing values.
+
+```{r} 
+## look up average for that interval and put it in meansteps.
+activity$meansteps<-stepstime$avesteps[stepstime$interval==as.numeric(activity$interval)]
+
+activity$imputesteps<-ifelse(activity$steps==NA, activity$meansteps,activity$steps)
+```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
@@ -63,8 +77,9 @@ Then break into two datasets, one for weekends and one for weekdays.
 ```{r}
 weekdayset<-subset(activity, activity$weekend=="weekday")
 weekendset<-subset(activity, activity$weekend=="weekend")
-## average activity over time for weekends
-
+## average activity over time for weekdays
+aveweekday<-tapply(weekdayset$steps,weekdayset$intlevels,mean,na.rm=TRUE)
+aveweekend<-tapply(weekendset$steps,weekendset$intlevels,mean,na.rm=TRUE)
 ```
 
 Plot two diagrams of average steps vs. time on weekdays, and average steps vs. time on weekend days.
