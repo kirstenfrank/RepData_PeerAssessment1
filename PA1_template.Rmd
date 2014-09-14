@@ -31,7 +31,7 @@ mean(results)
 median(results)
 hist(results, breaks = 10, main = "Frequecy of days with steps in range")
 ```
-Results show a normal-looking distribution with possible outliers at zero and >20,000. 
+Results show a normal-looking distribution with possible outliers at zero and >20,000. The mean number of steps per day is `r round(mean(results))`. The median number of steps per day is `r median(results)`.
 
 ## What is the average daily activity pattern?
 The only information about time in the day is contained in the interval number. 
@@ -42,7 +42,7 @@ stepstime<-as.data.frame(stepstime)
 stepstime$interval<-row.names(stepstime)
 stepstime$avesteps<-stepstime$stepstime
 stepstime$interval<-as.numeric(stepstime$interval)
-plot(stepstime$interval,stepstime$avesteps)
+plot(stepstime$interval,stepstime$avesteps,type="l")
 which.max(stepstime$avesteps)
 ```
 Conclusions: the highest activity is at .
