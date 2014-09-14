@@ -8,17 +8,23 @@ output:
 
 ## Loading and preprocessing the data
 
-```{r}
+```{r readin, echo=TRUE}
 unzip("activity.zip")  #Unzip data.
 activity<-read.csv("activity.csv")  ## read file into R
 ```
 
+Convert the dates into proper dates, using as.Date and as.factor.
 
-## What is mean total number of steps taken per day?
-The best way to determine this is to convert days into a factor and make a new dataframe that is the result of summing the step in each day. Then use this dataframe to make a mean over all days.
-```{r}
+```{r preprocess, echo=TRUE}
 activity$date<-as.Date(activity$date)
 activity$date<-as.factor(activity$date)
+library(lubridate)
+activity$weekday<-wday(activity$date, label=TRUE)
+```
+## What is mean total number of steps taken per day?
+The best way to determine this is to convert days into a factor and make a new dataframe that is the result of summing the step in each day. Then use this dataframe to make a mean over all days.
+
+```{r histogram, echo=TRUE}
 results<-tapply(activity$steps,activity$date, sum, na.rm=TRUE)
 ### Datatable "results" keeps the information.
 mean(results)
@@ -29,9 +35,39 @@ Results show a normal-looking distribution with possible outliers at zero and >2
 
 ## What is the average daily activity pattern?
 The only information about time in the day is contained in the interval number. 
-
+```{r dailyactivity,echo=TRUE}
+activity$intlevels<-as.ordered(activity$interval)
+stepstime<-tapply(activity$steps,activity$intlevels,mean,na.rm=TRUE)
+stepstime<-as.data.frame(stepstime)
+stepstime$interval<-row.names(stepstime)
+stepstime$avesteps<-stepstime$stepstime
+stepstime$interval<-as.numeric(stepstime$interval)
+plot(stepstime$interval,stepstime$avesteps)
+which.max(stepstime$avesteps)
+```
+Conclusions: the highest activity is at .
 ## Imputing missing values
 
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+First figure which days are weekend and which are not. 
+```{r }
+## Setup weekend vs weekday as a factor.
+activity$weekend<-
+    ifelse(activity$weekday %in% c("Mon","Tues","Wed","Thurs","Fri"),"weekday","weekend")
+activity$weekend<-as.factor(activity$weekend)
+```
+Then break into two datasets, one for weekends and one for weekdays.
+```{r}
+weekdayset<-subset(activity, activity$weekend=="weekday")
+weekendset<-subset(activity, activity$weekend=="weekend")
+## average activity over time for weekends
+
+```
+
+Plot two diagrams of average steps vs. time on weekdays, and average steps vs. time on weekend days.
+
+
+
