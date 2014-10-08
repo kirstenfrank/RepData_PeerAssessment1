@@ -26,25 +26,27 @@ activity$weekday<-wday(activity$date, label=TRUE)
 The best way to determine this is to convert days into a factor and make a new dataframe that is the result of summing the step in each day. Then use this dataframe to make a mean over all days.
 
 ```{r histogram, echo=TRUE}
-results<-tapply(activity$steps,activity$date, sum, na.rm=TRUE)
+library(dplyr)
+activity<-tbl_df(activity)
+activity_day<-group_by(activity,date)
+results<-summarize(activity_day,sum(steps,na.rm=TRUE))
 ### Datatable "results" keeps the information.
-mean(results)
-median(results)
-hist(results, breaks = 10, main = "Frequency of days with steps in range")
+colnames(results)<-c("date","dailysteps")
+mean(results$dailysteps)
+median(results$dailysteps)
+hist(results$dailysteps, breaks = 10, main = "Frequency of days with steps in range")
 ```
 
-Results show a normal-looking distribution with possible outliers at zero and >20,000. The mean number of steps per day is `r round(mean(results))`. The median number of steps per day is `r median(results)`.
+Results show a normal-looking distribution with possible outliers at zero and >20,000. The mean number of steps per day is `r round(mean(results$dailysteps))`. The median number of steps per day is `r median(results$dailysteps)`.
 
 ## What is the average daily activity pattern?
 
 The only information about time in the day is contained in the interval number. 
 
 ```{r dailyactivity,echo=TRUE}
-activity$intlevels<-as.ordered(activity$interval)
-stepstime<-tapply(activity$steps,activity$intlevels,mean,na.rm=TRUE)
-stepstime<-as.data.frame(stepstime)
-stepstime$interval<-row.names(stepstime)
-stepstime$avesteps<-stepstime$stepstime
+activity_minutes<-group_by(activity,interval)
+stepstime<-summarize(activity_minutes,mean(steps,na.rm=TRUE))
+names(stepstime)<-c("interval","avesteps")
 stepstime$interval<-as.integer(stepstime$interval)
 plot(stepstime$interval,stepstime$avesteps,type="l")
 which.max(stepstime$avesteps)
@@ -57,9 +59,9 @@ Conclusions: the highest activity is at `r stepstime$interval[which.max(stepstim
 The technique for calculating a value to impute for missing values is calculate an average for that time of day. This information is in the dataset stepstime and needs to be transferred back to the dataset activity. 
 
 First, how many values are NA?
-There are `r nrow(activity)`. There are `r sum(complete.cases(activity))` complete cases. Therefore, there are `r sum(!complete.cases(activity))`.  
+There are `r nrow(activity)` rows in the dataset activity. There are `r sum(complete.cases(activity))` complete cases. Therefore, there are `r sum(!complete.cases(activity))`.  
 
-I want to use the mean for that 5 minute interval across the days to fill in the missing values.
+I want to use the mean for each 5 minute interval across the days to fill in the missing values.
 
 ```{r} 
 ## Use merge to fill up the table with avesteps as a new variable.
@@ -84,7 +86,7 @@ hist(newresults, breaks = 10, main = "Frequency of days with steps in range usin
 ```
 
 
-The mean steps per day are `r mean(newresults)` and the median steps per data are `r median(newresults)`.  These are higher than before, which makes sense. The mean equals the median, which makes me think there is a mistake in the calculation. But I can't find it yet. There are many fewer days with lower numbers of steps. 
+The mean steps per day are `r mean(newresults)` and the median steps per data are `r median(newresults)`.  These are higher than before, which makes sense. The mean equals the median, which makes me think there is a mistake in the calculation. But I can't find it yet. There are many fewer days with lower numbers of steps in the histogram. 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
