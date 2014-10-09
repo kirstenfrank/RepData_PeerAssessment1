@@ -1,4 +1,9 @@
-# Reproducible Research: Peer Assessment 1
+---
+title: "Reproducible Research: Peer Assessment 1"
+output: 
+  html_document:
+    keep_md: true
+---
 
 
 ## Loading and preprocessing the data
@@ -24,9 +29,13 @@ The best way to determine this is to convert days into a factor and make a new d
 
 
 ```r
-results<-tapply(activity$steps,activity$date, sum, na.rm=TRUE)
+library(dplyr)
+activity<-tbl_df(activity)
+activity_day<-group_by(activity,date)
+results<-summarize(activity_day,sum(steps,na.rm=TRUE))
 ### Datatable "results" keeps the information.
-mean(results)
+colnames(results)<-c("date","dailysteps")
+mean(results$dailysteps)
 ```
 
 ```
@@ -34,7 +43,7 @@ mean(results)
 ```
 
 ```r
-median(results)
+median(results$dailysteps)
 ```
 
 ```
@@ -42,10 +51,10 @@ median(results)
 ```
 
 ```r
-hist(results, breaks = 10, main = "Frequency of days with steps in range")
+hist(results$dailysteps, breaks = 10, main = "Frequency of days with steps in range")
 ```
 
-![plot of chunk histogram](./PA1_template_files/figure-html/histogram.png) 
+![plot of chunk histogram](figure/histogram.png) 
 
 Results show a normal-looking distribution with possible outliers at zero and >20,000. The mean number of steps per day is 9354. The median number of steps per day is 10395.
 
@@ -55,24 +64,21 @@ The only information about time in the day is contained in the interval number.
 
 
 ```r
-activity$intlevels<-as.ordered(activity$interval)
-stepstime<-tapply(activity$steps,activity$intlevels,mean,na.rm=TRUE)
-stepstime<-as.data.frame(stepstime)
-stepstime$interval<-row.names(stepstime)
-stepstime$avesteps<-stepstime$stepstime
+activity_minutes<-group_by(activity,interval)
+stepstime<-summarize(activity_minutes,mean(steps,na.rm=TRUE))
+names(stepstime)<-c("interval","avesteps")
 stepstime$interval<-as.integer(stepstime$interval)
 plot(stepstime$interval,stepstime$avesteps,type="l")
 ```
 
-![plot of chunk dailyactivity](./PA1_template_files/figure-html/dailyactivity.png) 
+![plot of chunk dailyactivity](figure/dailyactivity.png) 
 
 ```r
 which.max(stepstime$avesteps)
 ```
 
 ```
-## 835 
-## 104
+## [1] 104
 ```
 Conclusions: the highest activity is at 835.
 
@@ -82,9 +88,9 @@ Conclusions: the highest activity is at 835.
 The technique for calculating a value to impute for missing values is calculate an average for that time of day. This information is in the dataset stepstime and needs to be transferred back to the dataset activity. 
 
 First, how many values are NA?
-There are 17568. There are 15264 complete cases. Therefore, there are 2304.  
+There are 17568 rows in the dataset activity. There are 15264 complete cases. Therefore, there are 2304.  
 
-I want to use the mean for that 5 minute interval across the days to fill in the missing values.
+I want to use the mean for each 5 minute interval across the days to fill in the missing values.
 
 
 ```r
@@ -124,10 +130,10 @@ median(newresults)
 hist(newresults, breaks = 10, main = "Frequency of days with steps in range using imputed data")
 ```
 
-![plot of chunk unnamed-chunk-2](./PA1_template_files/figure-html/unnamed-chunk-2.png) 
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2.png) 
 
 
-The mean steps per day are 1.0766 &times; 10<sup>4</sup> and the median steps per data are 1.0766 &times; 10<sup>4</sup>.  These are higher than before, which makes sense. The mean equals the median, which makes me think there is a mistake in the calculation. But I can't find it yet. There are many fewer days with lower numbers of steps. 
+The mean steps per day are 1.0766 &times; 10<sup>4</sup> and the median steps per data are 1.0766 &times; 10<sup>4</sup>.  These are higher than before, which makes sense. The mean equals the median, which makes me think there is a mistake in the calculation. But I can't find it yet. There are many fewer days with lower numbers of steps in the histogram. 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
@@ -149,17 +155,93 @@ weekdayset<-subset(activity, activity$weekend=="weekday")
 weekendset<-subset(activity, activity$weekend=="weekend")
 ## average activity over time for weekdays
 aveweekday<-tapply(weekdayset$steps,weekdayset$intlevels,mean,na.rm=TRUE)
-aveweekend<-tapply(weekendset$steps,weekendset$intlevels,mean,na.rm=TRUE)
+```
 
+```
+## Error: arguments must have same length
+```
+
+```r
+aveweekend<-tapply(weekendset$steps,weekendset$intlevels,mean,na.rm=TRUE)
+```
+
+```
+## Error: arguments must have same length
+```
+
+```r
 aveweekday<-as.data.frame(aveweekday)
+```
+
+```
+## Error: object 'aveweekday' not found
+```
+
+```r
 aveweekday$interval<-row.names(aveweekday)
+```
+
+```
+## Error: object 'aveweekday' not found
+```
+
+```r
 aveweekday$avesteps<-aveweekday$aveweekday
+```
+
+```
+## Error: object 'aveweekday' not found
+```
+
+```r
 aveweekday$interval<-as.integer(aveweekday$interval)
+```
+
+```
+## Error: object 'aveweekday' not found
+```
+
+```r
 aveweekend<-as.data.frame(aveweekend)
+```
+
+```
+## Error: object 'aveweekend' not found
+```
+
+```r
 aveweekend$interval<-row.names(aveweekend)
+```
+
+```
+## Error: object 'aveweekend' not found
+```
+
+```r
 aveweekend$avesteps<-aveweekend$aveweekend
+```
+
+```
+## Error: object 'aveweekend' not found
+```
+
+```r
 aveweekend$interval<-as.integer(aveweekend$interval)
+```
+
+```
+## Error: object 'aveweekend' not found
+```
+
+```r
 newplot<-merge(aveweekday,aveweekend,by="interval")
+```
+
+```
+## Error: object 'aveweekday' not found
+```
+
+```r
 library(ggplot2)
 ```
 
@@ -170,10 +252,14 @@ Plot two diagrams of average steps vs. time on weekdays, and average steps vs. t
 ggplot(newplot,aes(interval,aveweekday)) + geom_line()
 ```
 
-![plot of chunk unnamed-chunk-5](./PA1_template_files/figure-html/unnamed-chunk-51.png) 
+```
+## Error: object 'newplot' not found
+```
 
 ```r
 ggplot(newplot,aes(interval,aveweekend)) + geom_line()
 ```
 
-![plot of chunk unnamed-chunk-5](./PA1_template_files/figure-html/unnamed-chunk-52.png) 
+```
+## Error: object 'newplot' not found
+```
