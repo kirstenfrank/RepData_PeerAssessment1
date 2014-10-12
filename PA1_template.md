@@ -109,9 +109,11 @@ Now to repeat the analysis with imputed values.
 
 
 ```r
-newresults<-tapply(newdata$imputesteps,newdata$date, sum, na.rm=TRUE)
+newdata_group<-group_by(newdata,date)
+newresults<-summarize(newdata_group, sum(imputesteps))
+names(newresults)<-c("date","imputesteps")
 ### Datatable "results" keeps the information.
-mean(newresults)
+mean(newresults$imputesteps)
 ```
 
 ```
@@ -119,7 +121,7 @@ mean(newresults)
 ```
 
 ```r
-median(newresults)
+median(newresults$imputesteps)
 ```
 
 ```
@@ -127,7 +129,7 @@ median(newresults)
 ```
 
 ```r
-hist(newresults, breaks = 10, main = "Frequency of days with steps in range using imputed data")
+hist(newresults$imputesteps, breaks = 10, main = "Frequency of days with steps in range using imputed data",xlab="Steps with imputed steps")
 ```
 
 ![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2.png) 
@@ -151,115 +153,18 @@ Then break into two datasets, one for weekends and one for weekdays.
 
 
 ```r
-weekdayset<-subset(activity, activity$weekend=="weekday")
-weekendset<-subset(activity, activity$weekend=="weekend")
-## average activity over time for weekdays
-aveweekday<-tapply(weekdayset$steps,weekdayset$intlevels,mean,na.rm=TRUE)
-```
-
-```
-## Error: arguments must have same length
-```
-
-```r
-aveweekend<-tapply(weekendset$steps,weekendset$intlevels,mean,na.rm=TRUE)
-```
-
-```
-## Error: arguments must have same length
-```
-
-```r
-aveweekday<-as.data.frame(aveweekday)
-```
-
-```
-## Error: object 'aveweekday' not found
-```
-
-```r
-aveweekday$interval<-row.names(aveweekday)
-```
-
-```
-## Error: object 'aveweekday' not found
-```
-
-```r
-aveweekday$avesteps<-aveweekday$aveweekday
-```
-
-```
-## Error: object 'aveweekday' not found
-```
-
-```r
-aveweekday$interval<-as.integer(aveweekday$interval)
-```
-
-```
-## Error: object 'aveweekday' not found
-```
-
-```r
-aveweekend<-as.data.frame(aveweekend)
-```
-
-```
-## Error: object 'aveweekend' not found
-```
-
-```r
-aveweekend$interval<-row.names(aveweekend)
-```
-
-```
-## Error: object 'aveweekend' not found
-```
-
-```r
-aveweekend$avesteps<-aveweekend$aveweekend
-```
-
-```
-## Error: object 'aveweekend' not found
-```
-
-```r
-aveweekend$interval<-as.integer(aveweekend$interval)
-```
-
-```
-## Error: object 'aveweekend' not found
-```
-
-```r
-newplot<-merge(aveweekday,aveweekend,by="interval")
-```
-
-```
-## Error: object 'aveweekday' not found
-```
-
-```r
-library(ggplot2)
+### group_by can use more than one factor, summarize will work by the latest factor grouped
+activity_weekend_int<-group_by(activity,weekend,interval)
+activity_weekend<-summarize(activity_weekend_int,mean(steps,na.rm=TRUE))
+names(activity_weekend)<-c("weekend","interval","meansteps")
 ```
 
 Plot two diagrams of average steps vs. time on weekdays, and average steps vs. time on weekend days.
 
 
 ```r
-ggplot(newplot,aes(interval,aveweekday)) + geom_line()
+library(ggplot2)
+ggplot(activity_weekend,aes(interval,meansteps)) + geom_line() + facet_grid(.~weekend)
 ```
 
-```
-## Error: object 'newplot' not found
-```
-
-```r
-ggplot(newplot,aes(interval,aveweekend)) + geom_line()
-```
-
-```
-## Error: object 'newplot' not found
-```
+![plot of chunk plot](figure/plot.png) 

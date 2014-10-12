@@ -88,7 +88,7 @@ hist(newresults$imputesteps, breaks = 10, main = "Frequency of days with steps i
 ```
 
 
-The mean steps per day are `r mean(newresults$imputedsteps)` and the median steps per data are `r median(newresults$imputedsteps)`.  These are higher than before, which makes sense. The mean equals the median, which makes me think there is a mistake in the calculation. But I can't find it yet. There are many fewer days with lower numbers of steps in the histogram. 
+The mean steps per day are `r mean(newresults$imputesteps)` and the median steps per data are `r median(newresults$imputesteps)`.  These are higher than before, which makes sense. The mean equals the median, which makes me think there is a mistake in the calculation. But I can't find it yet. There are many fewer days with lower numbers of steps in the histogram. 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
@@ -103,29 +103,16 @@ activity$weekend<-as.factor(activity$weekend)
 
 Then break into two datasets, one for weekends and one for weekdays.
 
-```{r average by daytype}
-weekdayset<-select(activity, weekend=="weekday")
-weekendset<-select(activity, weekend=="weekend")
-## average activity over time for weekdays, add factor for daytype=weekday
-weekdayset<-group_by(weekdayset,interval)
-aveweekday<-summarize(weekdayset,mean(steps,na.rm=TRUE))
-    names(aveweekday)<-c("interval","meansteps")
-    aveweekday$daytype<-"weekday"
-    aveweekday$daytype<-as.factor(aveweekday$daytype)
-## average activity over interval for weekends, add factor for daytype=weekend
-weekendset<-group_by(weekendset,interval)
-aveweekend<-summarize(weekendset,mean(steps,na.rm=TRUE))
-    names(aveweekend)<-c("interval","meansteps")
-    aveweekend$daytype<-"weekend"
-    aveweekend$daytype<-as.factor(aveweekend$daytype)
-# combine to make a single dataset
-avesteps<-rbind(aveweekend,aveweekday)
-
+```{r average by weekend}
+### group_by can use more than one factor, summarize will work by the latest factor grouped
+activity_weekend_int<-group_by(activity,weekend,interval)
+activity_weekend<-summarize(activity_weekend_int,mean(steps,na.rm=TRUE))
+names(activity_weekend)<-c("weekend","interval","meansteps")
 ```
 
 Plot two diagrams of average steps vs. time on weekdays, and average steps vs. time on weekend days.
 
 ```{r plot}
 library(ggplot2)
-ggplot(avesteps,aes(interval,meansteps)) + geom_line() + facet_grid(.~daytype)
+ggplot(activity_weekend,aes(interval,meansteps)) + geom_line() + facet_grid(.~weekend)
 ```
