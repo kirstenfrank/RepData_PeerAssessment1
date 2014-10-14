@@ -1,3 +1,10 @@
+Project 1 in Reproducible Research.
+==================================
+
+The R markdown document that does the analysis and produces the report is called 
+PA1_template.Rmd
+The knitted markdown file is PA1_template.md, and the html is PA1_template.html.
+
 ## Introduction
 
 It is now possible to collect a large amount of data about personal
